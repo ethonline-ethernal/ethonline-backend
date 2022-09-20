@@ -1,0 +1,22 @@
+{
+    "name": "ethonline-backend",
+    "version": "0.0.1",
+    "description": "Finding people that hold NFT near you.",
+    "main": "index.js",
+    "scripts": {
+        "start:dev": "nodemon --inspect index.js",
+        "start": "node index.js"
+    },
+    "devDependencies": {
+        "@types/socket.io": "^3.0.2",
+        "nodemon": "^1.17.2"
+    },
+    "dependencies": {
+        "dotenv": "^16.0.2",
+        "express": "^4.18.1",
+        "mongoose": "^6.6.1",
+        "mongoose-geojson-schema": "^2.1.2",
+        "request": "^2.85.0",
+        "socket.io": "^2.0.4"
+    }
+}
