@@ -10,7 +10,7 @@ server.listen(PORT);
 
 let sockets = []; // Array holding sockets associated with userIds
 
-const findNear = async({ postion , socket , userId}) => {
+const findNear = async({ position , socket , userId }) => {
     const user = await Users.findOne({_id: userId})
 
     if(!user) return [];
