@@ -49,9 +49,14 @@ const findNear = async ({ position, socket, userId }) => {
   });
 
   const usersFound = users.filter(user => {
-    return user.id != userId && user.isOnline
+    return user.id != userId;
   })
+console.log("userFound");
+console.log(usersFound);
 
+  const userOnline = usersFound.filter(user=>{ return user.isOnline === true});
+	console.log("online user"); 
+console.log(userOnline);
 
   socket.emit("found-near", usersFound);
 };
