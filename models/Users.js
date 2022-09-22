@@ -16,6 +16,6 @@ const schema = new Schema({
   tags: Schema.Types.Array
 });
 
-schema.index({ position: `2dsphere` });
+schema.index({ position: "2dsphere" });
 
 module.exports = mongoose.model(`User`, schema);

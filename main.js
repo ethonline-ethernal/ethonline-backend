@@ -1,6 +1,7 @@
 const app = require(`express`)();
 const server = require(`http`).Server(app);
 const io = require(`socket.io`)(server);
+const { db } = require("./models/Users");
 const Users = require("./models/Users");
 
 const PORT = process.env.PORT || 3001;
@@ -11,6 +12,8 @@ let sockets = []; // Array holding sockets associated with userIds
 
 const findNear = async ({ position, socket, userId }) => {
   const user = await Users.findOne({ _id: userId });
+
+  console.log(position)
 
   if (!user) return [];
 
@@ -26,6 +29,8 @@ const findNear = async ({ position, socket, userId }) => {
     };
     await user.save();
   }
+
+  await Users.ensureIndexes({position: "2dsphere"})
 
   const users = await Users.find({
     position: {
@@ -43,15 +48,10 @@ const findNear = async ({ position, socket, userId }) => {
     },
   });
 
-  const usersFound = users.map(
-    ({ _id, displayName, profilePictureUrl, gender, message }) => ({
-      _id,
-      displayName,
-      profilePictureUrl,
-      gender,
-      message,
-    })
-  );
+  const usersFound = users.filter(user => {
+    return user.id != userId && user.isOnline
+  })
+
 
   socket.emit("found-near", usersFound);
 };
@@ -83,8 +83,11 @@ const setUp = async () => {
         sockets = sockets.map((u) => u.userId !== userId);
       });
 
-      socket.on("find-near", async (newPosition) => {
-        await findNear({ postion: newPosition, socket, userId });
+      socket.on("find-near", async (msg) => {
+        const data = JSON.parse(msg)
+
+        const { position } = data
+        await findNear({ position, socket, userId });
       });
 
       socket.on("ask-user", async (othersSocketId) => {
