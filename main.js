@@ -12,9 +12,6 @@ let sockets = []; // Array holding sockets associated with userIds
 
 const findNear = async ({ position, socket, userId }) => {
   const user = await Users.findOne({ _id: userId });
-
-  console.log(position)
-
   if (!user) return [];
 
   if (
@@ -52,11 +49,9 @@ const findNear = async ({ position, socket, userId }) => {
     return user.id != userId;
   })
 console.log("userFound");
-console.log(usersFound);
 
   const userOnline = usersFound.filter(user=>{ return user.isOnline === true});
 	console.log("online user"); 
-console.log(userOnline);
 
   socket.emit("found-near", usersFound);
 };
@@ -74,38 +69,46 @@ const setUp = async () => {
 
       const user_data = await Users.findOne({ twitter_id: twitter_id });
       const userId = user_data._id;
+		sockets.push({
+			name: user_data.display_name,
+		        userId: userId,
+       			socket,
+      		});
 
-      sockets.push({
-        userId: userId,
-        socket,
-      });
-
+	console.log("Connected");
       socket.emit("logged-in", userId);
 
       socket.on("disconnect", async () => {
         await Users.findByIdAndUpdate({ _id: userId }, { isOnline: false });
         console.log("DISCONNECT", userId);
-        sockets = sockets.map((u) => u.userId !== userId);
+        sockets = sockets.filter((u) => u.userId !== userId);
       });
 
       socket.on("find-near", async (msg) => {
-        const data = JSON.parse(msg)
+        console.log("Call Find")
+	const data = JSON.parse(msg)
 
         const { position } = data
         await findNear({ position, socket, userId });
       });
 
       socket.on("ask-user", async (othersSocketId) => {
+	console.log("Sockets");
+	sockets.map((u)=> console.log(u.userId));
+
+	console.log("other ID => ");
+	console.log(othersSocketId);
         const found = sockets.find((u) => u.userId.equals(othersSocketId));
 
+	console.log(found)
         if (!found) {
           socket.emit("user-not-found");
           return;
         }
 
-        const { socket: othersSocket } = found;
+        const { socket: othersSocket, name } = found;
 
-        othersSocket.emit("chat-request", userId);
+        othersSocket.emit("chat-request", {userId, name});
 
         othersSocket.once("request-accepted", (uid) => {
           if (userId.equals(uid)) {
